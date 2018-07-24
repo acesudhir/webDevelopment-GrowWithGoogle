@@ -1,19 +1,21 @@
 /*
  * Create a list that holds all of your cards
  */
-let cards = ['fa-diamond', 'fa-diamond',
-             'fa-paper-plane-o', 'fa-paper-plane-o',
-             'fa-anchor', 'fa-anchor',
-             'fa-bolt', 'fa-bolt',
-             'fa-cube', 'fa-cube',
-             'fa-leaf', 'fa-leaf',
-             'fa-bicycle', 'fa-bicycle',
-             'fa-bomb', 'fa-bomb'
+let cards = ['fa-space-shuttle', 'fa-space-shuttle',
+             'fa-soundcloud', 'fa-soundcloud',
+             'fa-stumbleupon-circle', 'fa-stumbleupon-circle',
+             'fa-dropbox', 'fa-dropbox',
+             'fa-stack-overflow', 'fa-stack-overflow',
+             'fa-birthday-cake', 'fa-birthday-cake',
+             'fa-automobile', 'fa-automobile',
+             'fa-skyatlas', 'fa-skyatlas'
             ];
+
 
 function generateCard(card){
   return `<li class="card animated" data-card="${card}"> <i class="fa ${card}"> </i> </li>`;
 }
+
 
 /*
  * Display the cards on the page
@@ -22,12 +24,13 @@ function generateCard(card){
  *   - add each card's HTML to the page
  */
 
+
 // Shuffle function from http://stackoverflow.com/a/2450976
 function shuffle(array) {
     var currentIndex = array.length, temporaryValue, randomIndex;
 
     while (currentIndex !== 0) {
-        randomIndex = Math.floor(Math.random() * currentIndex);	
+        randomIndex = Math.floor(Math.random() * currentIndex); 
         currentIndex -= 1;
         temporaryValue = array[currentIndex];
         array[currentIndex] = array[randomIndex];
@@ -50,18 +53,18 @@ function shuffle(array) {
  */
 
 function startGame(){
-  const cardDeck = document.querySelector('.deck');
-  const cardHTML = shuffle(cards).map(function(card){
+  const deckOfCards = document.querySelector('.deck');
+  const htmlOfCard = shuffle(cards).map(function(card){
     return generateCard(card);
   });
-  cardDeck.innerHTML = cardHTML.join('');
+  deckOfCards.innerHTML = htmlOfCard.join('');
 }
 
 //Initialize and begin game
 startGame();
-const getAllCards = document.querySelectorAll('.card');
+const cardList = document.querySelectorAll('.card');
 //initialize empty array for open cards
-let openCards = [];
+let openCardsArray = [];
 //initialize start move counter
 let moves = 0;
 const moveCounter = document.querySelector('.moves');
@@ -75,53 +78,54 @@ const screen = document.getElementById('screen');
 const win = document.getElementById('win');
 const lose = document.getElementById('lose');
 
+//restart game when user clicks on restart function
 $(document).ready(function(){
   $('.restart').click(function(){
       location.reload();
   });
 });
 
-
-getAllCards.forEach(function(card){
-    //Using addeventListener on clicking on any card.
+// Jamie Lee for event listener and reset code.
+cardList.forEach(function(card){
+    //Using addeventListener when clicking on any card.
     card.addEventListener('click', function(e){
       //Checking if the card has 'open' & 'show' class
       if ((!card.classList.contains('open') || !card.classList.contains('show')) && !card.classList.contains('match')){
-        openCards.push(card);
-        //when user clicks on cards show the cards to the user
+        openCardsArray.push(card);
+        //when user clicks on cards show the cards to the user if match happens else shake the open cards and revert back
         card.classList.add('open', 'show', 'turnCard');
         card.classList.remove('shake')
-        //Initialize timer
+        //Show stars related to how well user played the game
         if (moves === 16) {
-          stars[0].remove();
+          stars[0].remove(); // will show 3 stars
         } else if (moves === 24) {
-          stars[1].remove();
+          stars[1].remove(); // will show 2 stars
         } else if (moves === 32) {
           stars[2].remove();
-          screen.style.display = "block";
-          lose.style.display = "block";
+          screen.style.display = "inline-block";
+          lose.style.display = "inline-block";
         }
 
-        if (openCards.length == 2){
+        if (openCardsArray.length == 2){
           //Validate that cards match one another
-          if (openCards[0].dataset.card == openCards[1].dataset.card){
-              openCards[0].classList.add('match', 'open', 'show', 'turnCard');
-              openCards[1].classList.add('match', 'open', 'show', 'turnCard');
+          if (openCardsArray[0].dataset.card == openCardsArray[1].dataset.card){
+              openCardsArray[0].classList.add('match', 'open', 'show', 'turnCard');
+              openCardsArray[1].classList.add('match', 'open', 'show', 'turnCard');
               matchCounter++;
-              openCards = [];
+              openCardsArray = [];
               if (matchCounter === 8) {
-                screen.style.display = "block";
-                win.style.display = "block";
+                screen.style.display = "inline-block";
+                win.style.display = "inline-block";
               }
           } else {
               //If cards don't match - reset cards and turn them back to original state
               setTimeout(function(){
-                openCards.forEach(function(card){
+                openCardsArray.forEach(function(card){
                   card.classList.remove('open', 'show', 'turnCard');
                   card.classList.add('shake');
                 });
                 //reset openCards array back once user clicks on 2 cards during a game
-                openCards = [];
+                openCardsArray = [];
               }, 1000);
             }
             moves += 1;
