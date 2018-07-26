@@ -11,11 +11,9 @@ let cards = ['fa-space-shuttle', 'fa-space-shuttle',
              'fa-skyatlas', 'fa-skyatlas'
             ];
 
-
-function generateCard(card){
+function displayCard(card){
   return `<li class="card animated" data-card="${card}"> <i class="fa ${card}"> </i> </li>`;
 }
-
 
 /*
  * Display the cards on the page
@@ -24,13 +22,12 @@ function generateCard(card){
  *   - add each card's HTML to the page
  */
 
-
 // Shuffle function from http://stackoverflow.com/a/2450976
 function shuffle(array) {
     var currentIndex = array.length, temporaryValue, randomIndex;
 
     while (currentIndex !== 0) {
-        randomIndex = Math.floor(Math.random() * currentIndex); 
+        randomIndex = Math.floor(Math.random() * currentIndex);
         currentIndex -= 1;
         temporaryValue = array[currentIndex];
         array[currentIndex] = array[randomIndex];
@@ -53,80 +50,109 @@ function shuffle(array) {
  */
 
 function startGame(){
-  const deckOfCards = document.querySelector('.deck');
+  const deckOfCards  = document.querySelector('.deck');
   const htmlOfCard = shuffle(cards).map(function(card){
-    return generateCard(card);
+    return displayCard(card);
   });
   deckOfCards.innerHTML = htmlOfCard.join('');
 }
 
-//Initialize and begin game
+//Initialize game
 startGame();
-const cardList = document.querySelectorAll('.card');
-//initialize empty array for open cards
-let openCardsArray = [];
-//initialize start move counter
+const cardList  = document.querySelectorAll('.card');
+//Empty array for open cards
+let arrayOfOpenCards = [];
+//Move counter
 let moves = 0;
 const moveCounter = document.querySelector('.moves');
 moveCounter.innerText = moves;
-//count stars
+//Stars
 const stars = document.querySelectorAll('.fa-star');
-//initialize counter for matched cards
+stars.innerHTML = `<li><i class="fa fa-star"></i></li><li><i class="fa fa-star"></i></li><li><i class="fa fa-star"></i></li>`;
+//Counter for matched cards
 let matchCounter = 0;
-//get win and loose screen.
+//Win & Lose Screen
 const screen = document.getElementById('screen');
 const win = document.getElementById('win');
 const lose = document.getElementById('lose');
+// Timer
+let time = 0;
+let startTimer = setInterval(timer, 1000);
 
-//restart game when user clicks on restart function
 $(document).ready(function(){
+  //TODO: Reset page.
   $('.restart').click(function(){
       location.reload();
   });
 });
 
-// Jamie Lee for event listener and reset code.
+//Timer Function
+function timer() {
+  time++;
+  document.querySelector("#timer").innerHTML = time;
+}
+
+function addMessage() {
+  clearInterval(startTimer);
+  const message = document.getElementById('message');
+  message.innerText = `You finished the game in ${time} seconds. You have ${howManyStars} stars.`;
+}
+
 cardList.forEach(function(card){
-    //Using addeventListener when clicking on any card.
+    //With eventlistener 'click' function added to all cards
     card.addEventListener('click', function(e){
       //Checking if the card has 'open' & 'show' class
       if ((!card.classList.contains('open') || !card.classList.contains('show')) && !card.classList.contains('match')){
-        openCardsArray.push(card);
-        //when user clicks on cards show the cards to the user if match happens else shake the open cards and revert back
-        card.classList.add('open', 'show', 'turnCard');
+        arrayOfOpenCards.push(card);
+        
+        //Adds 'open' & 'show' classes to cards after click
+        card.classList.add('open', 'show', 'flipInY');
         card.classList.remove('shake')
-        //Show stars related to how well user played the game
-        if (moves === 16) {
-          stars[0].remove(); // will show 3 stars
-        } else if (moves === 24) {
-          stars[1].remove(); // will show 2 stars
-        } else if (moves === 32) {
+        //Start timer
+        if (moves === 0) {
+          timer();
+          howManyStars = 3;
+          stars.innerHTML = `<li><i class="fa fa-star"></i></li><li><i class="fa fa-star"></i></li><li><i class="fa fa-star"></i></li>`;
+        } else if (moves >= 16 && moves <=23) {
+          stars[0].remove();
+          howManyStars = 2;
+          stars.innerHTML = `<li><i class="fa fa-star"></i></li><li><i class="fa fa-star"></i></li>`;
+        } else if (moves >= 24 && moves <=31) {
+          stars[1].remove();
+          howManyStars = 1;
+          stars.innerHTML = `<li><i class="fa fa-star"></i></li>`;             
+		} else if (moves >= 32) {
           stars[2].remove();
-          screen.style.display = "inline-block";
-          lose.style.display = "inline-block";
+          howManyStars = 0;
+          stars.innerHTML = ``;            
+          addMessage();
+          screen.style.display = "block";
+          lose.style.display = "block";
         }
 
-        if (openCardsArray.length == 2){
-          //Validate that cards match one another
-          if (openCardsArray[0].dataset.card == openCardsArray[1].dataset.card){
-              openCardsArray[0].classList.add('match', 'open', 'show', 'turnCard');
-              openCardsArray[1].classList.add('match', 'open', 'show', 'turnCard');
+        if (arrayOfOpenCards.length == 2){
+          //Check if cards match
+          if (arrayOfOpenCards[0].dataset.card == arrayOfOpenCards[1].dataset.card){
+              arrayOfOpenCards[0].classList.add('match', 'open', 'show', 'flipInY');
+              arrayOfOpenCards[1].classList.add('match', 'open', 'show', 'flipInY');
               matchCounter++;
-              openCardsArray = [];
+              arrayOfOpenCards = [];
               if (matchCounter === 8) {
-                screen.style.display = "inline-block";
-                win.style.display = "inline-block";
+                addMessage();
+                screen.style.display = "block";
+                win.style.display = "block";
               }
           } else {
-              //If cards don't match - reset cards and turn them back to original state
+              //'open' & 'show' classes will be deleted from cards after 1 second
+              //If cards don't match - go away
               setTimeout(function(){
-                openCardsArray.forEach(function(card){
-                  card.classList.remove('open', 'show', 'turnCard');
+                arrayOfOpenCards.forEach(function(card){
+                  card.classList.remove('open', 'show', 'flipInY');
                   card.classList.add('shake');
                 });
-                //reset openCards array back once user clicks on 2 cards during a game
-                openCardsArray = [];
-              }, 1000);
+                //openCards array empitied out after two cards opened
+                arrayOfOpenCards = [];
+              }, 800);
             }
             moves += 1;
             moveCounter.innerText = moves;
